@@ -63,13 +63,19 @@ That tradeoff is reasonable for this project because the goal is to provide a cl
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used AI throughout the project as a design partner, debugger, and quality-checker. It was especially useful for turning the initial UML ideas into Python classes, identifying places where the design could be simplified, and drafting tests for the scheduler behaviors. I also used it to help improve the Streamlit UI and to refine the README so the project read like a complete product rather than a coding exercise.
+
+The most helpful prompts were specific and focused, such as asking for a class structure that matched my current implementation, asking for test cases around recurring tasks and conflict detection, and asking for a clearer explanation of a bug or design issue. The AI was most effective when I provided the existing code and asked for targeted improvements rather than broad rewrites.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+One example of an AI suggestion I rejected was a proposal to place too much scheduling logic directly inside the UI layer. That would have made the app easier to write quickly, but it would have mixed presentation logic with scheduling rules and made the system harder to test and maintain. I modified that idea by keeping the UI thin and making the Scheduler responsible for the actual scheduling behavior.
+
+I evaluated the AI’s suggestions by checking them against the existing class responsibilities and by verifying the results with tests. If a suggestion improved clarity without adding unnecessary complexity, I kept it. If it made the design less cohesive, I adjusted it.
+
+A key part of using separate chat sessions was keeping each phase focused. I used one thread for architecture and UML, another for implementation and debugging, and another for polishing the UI, tests, and documentation. That helped me stay organized and prevented earlier design ideas from being mixed with later implementation details.
+
+The biggest lesson was that being the lead architect means setting clear boundaries, defining the system structure first, and using AI as a force multiplier rather than letting it take over the design. The human still needs to decide what belongs in each class, what tradeoffs are acceptable, and what the final product should prioritize.
 
 ---
 
@@ -77,13 +83,11 @@ That tradeoff is reasonable for this project because the goal is to provide a cl
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+I tested the core behaviors that matter most for a scheduler: task sorting, recurring-task creation, conflict detection, and basic pet/owner task management. These tests were important because they verify that the system behaves correctly in the situations a pet owner is most likely to care about, such as overlapping appointments or daily tasks that should repeat.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I am reasonably confident in the current scheduler for this project scope. The test suite covers the main success paths and the most important edge cases, and the implementation is simple enough to reason about clearly. If I had more time, I would test additional edge cases such as multiple pets sharing the same time windows, longer overlapping durations, and more complex recurring schedules with weekly or monthly patterns.
 
 ---
 
@@ -91,12 +95,12 @@ That tradeoff is reasonable for this project because the goal is to provide a cl
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+I am most satisfied with how the system ended up being organized. The classes have clear responsibilities, the scheduler behavior is easy to explain, and the app now demonstrates the algorithmic features in a way that is understandable to a beginner.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I would improve the scheduler to support more realistic calendar-style planning, such as checking full time ranges more carefully and allowing more detailed time-window handling. I would also add persistence so appointments and pets are saved between sessions.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+One important lesson from this project is that strong AI-assisted development still depends on a clear human design vision. The AI can generate code quickly, but the architect’s job is to decide what the system should do, how responsibilities should be divided, and how to keep the implementation clean and maintainable.

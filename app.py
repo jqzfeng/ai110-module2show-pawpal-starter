@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 
 from pawpal_system import Owner, Pet, Task, Scheduler
 
@@ -8,39 +9,9 @@ st.title("🐾 PawPal+")
 
 st.markdown(
     """
-Welcome to the PawPal+ starter app.
-
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
+This simple planner helps you organize pet care tasks with clear sorting, filtering, and conflict checks.
 """
 )
-
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
-
-st.divider()
-
-st.subheader("Quick Demo Inputs")
 
 if "owner" not in st.session_state:
     st.session_state.owner = Owner(name="Jordan")
@@ -51,6 +22,7 @@ if "pet" not in st.session_state:
 if not any(pet.name == st.session_state.pet.name and pet.species == st.session_state.pet.species for pet in st.session_state.owner.pets):
     st.session_state.owner.add_pet(st.session_state.pet)
 
+st.subheader("Owner and pet")
 owner_name = st.text_input("Owner name", value=st.session_state.owner.name)
 pet_name = st.text_input("Pet name", value=st.session_state.pet.name)
 species = st.selectbox("Species", ["dog", "cat", "other"], index=["dog", "cat", "other"].index(st.session_state.pet.species))
@@ -64,56 +36,104 @@ if pet_name != st.session_state.pet.name or species != st.session_state.pet.spec
 
 if st.button("Add pet to owner"):
     new_pet = Pet(name=pet_name, species=species)
-    st.session_state.owner.add_pet(new_pet)
+    if not any(existing.name.lower() == new_pet.name.lower() for existing in st.session_state.owner.pets):
+        st.session_state.owner.add_pet(new_pet)
     st.session_state.pet = new_pet
-    st.session_state.tasks = []
     st.success(f"Added {pet_name} to {st.session_state.owner.name}'s pets.")
-
-st.markdown("### Tasks")
-st.caption("Add a few tasks to the active pet.")
-
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
-with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
-with col3:
-    priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
-
-if st.button("Add task"):
-    task = Task(description=task_title, duration_minutes=int(duration), priority=priority)
-    st.session_state.pet.add_task(task)
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
-    st.success(f"Added '{task_title}' to {st.session_state.pet.name}.")
-
-if st.session_state.owner.pets:
-    st.write("Pets for this owner:")
-    st.table([{"name": pet.name, "species": pet.species} for pet in st.session_state.owner.pets])
-
-if st.session_state.tasks:
-    st.write("Current tasks:")
-    st.table(st.session_state.tasks)
-else:
-    st.info("No tasks yet. Add one above.")
 
 st.divider()
 
-st.subheader("Build Schedule")
+st.subheader("Add an appointment")
+with st.form("task_form"):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        task_title = st.text_input("Appointment", value="Vet Visit")
+    with col2:
+        duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=30)
+    with col3:
+        priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
-if st.button("Generate schedule"):
-    scheduler = Scheduler(st.session_state.owner, pet=st.session_state.pet)
-    plan = scheduler.generate_daily_plan()
+    task_time = st.time_input("Time", value=datetime.now().time())
+    submitted = st.form_submit_button("Add appointment")
 
-    st.subheader("Today's schedule")
-    for item in plan.scheduled_items:
-        st.write(f"- {item.start_time.strftime('%H:%M')} - {item.end_time.strftime('%H:%M')} : {item.task.description} ({item.task.duration_minutes} min)")
+    if submitted:
+        task = Task(
+            description=task_title,
+            duration_minutes=int(duration),
+            priority=priority,
+            time_of_day=task_time.strftime("%H:%M"),
+            due_date=datetime.combine(datetime.now().date(), task_time),
+        )
+        st.session_state.pet.add_task(task)
 
-    if plan.skipped_tasks:
-        st.caption("Skipped tasks")
-        for task in plan.skipped_tasks:
-            st.write(f"- {task.description}")
+        scheduler = Scheduler(st.session_state.owner, pet=st.session_state.pet)
+        conflict_warning = scheduler.detect_conflicts(st.session_state.pet.tasks)
+        if conflict_warning:
+            st.warning(
+                f"⚠️ {st.session_state.pet.name} already has a task at this time. "
+                f"{conflict_warning} Please choose another time or review the schedule before confirming."
+            )
+        else:
+            st.success(f"Added '{task_title}' for {st.session_state.pet.name} without conflicts.")
+
+st.divider()
+
+st.subheader("Scheduler overview")
+scheduler = Scheduler(st.session_state.owner, pet=st.session_state.pet)
+
+pet_filter = st.selectbox(
+    "View appointments for",
+    ["All pets"] + [pet.name for pet in st.session_state.owner.pets],
+)
+
+if pet_filter == "All pets":
+    visible_tasks = scheduler.filter_tasks(st.session_state.owner.get_all_tasks(), completed=False)
+else:
+    visible_tasks = scheduler.filter_tasks(st.session_state.owner.get_all_tasks(), completed=False, pet_name=pet_filter)
+
+sorted_tasks = scheduler.sort_by_time(visible_tasks)
+
+col_a, col_b, col_c = st.columns(3)
+with col_a:
+    st.metric("Total appointments", len(sorted_tasks))
+with col_b:
+    st.metric("Number of pets", len(st.session_state.owner.pets))
+with col_c:
+    conflict_warning = scheduler.detect_conflicts(sorted_tasks)
+    st.metric("Number of conflicts", 1 if conflict_warning else 0)
+
+chart_data = {pet.name: len(pet.get_pending_tasks()) for pet in st.session_state.owner.pets}
+if chart_data:
+    st.caption("Appointments by pet")
+    st.bar_chart(chart_data)
+
+if sorted_tasks:
+    schedule_rows = []
+    for task in sorted_tasks:
+        matching_pet = next((pet for pet in st.session_state.owner.pets if task in pet.tasks), st.session_state.pet)
+        schedule_rows.append(
+            {
+                "Pet": matching_pet.name,
+                "Appointment": task.description,
+                "Time": task.time_of_day or "Not set",
+                "Duration (min)": task.duration_minutes,
+                "Priority": task.priority.title(),
+            }
+        )
+
+    st.caption("Upcoming appointments in sorted order")
+    st.dataframe(schedule_rows, use_container_width=True)
+else:
+    st.info("No upcoming appointments yet. Add one above to build the schedule.")
+
+if pet_filter == "All pets":
+    conflict_warning = scheduler.detect_conflicts(st.session_state.owner.get_all_tasks())
+else:
+    conflict_warning = scheduler.detect_conflicts(
+        scheduler.filter_tasks(st.session_state.owner.get_all_tasks(), completed=False, pet_name=pet_filter)
+    )
+
+if conflict_warning:
+    st.warning(conflict_warning)
+else:
+    st.success("No scheduling conflicts found for the selected view.")

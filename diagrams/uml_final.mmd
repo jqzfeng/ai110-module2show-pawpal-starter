@@ -1,0 +1,90 @@
+classDiagram
+    class TimeWindow {
+        +start_time: time
+        +end_time: time
+        +get_duration() int
+    }
+
+    class Task {
+        +description: str
+        +duration_minutes: int
+        +frequency: str
+        +priority: str
+        +completed: bool
+        +is_essential: bool
+        +time_of_day: Optional[str]
+        +due_date: Optional[datetime]
+        +get_priority_score() int
+        +can_skip() bool
+        +mark_complete() Optional[Task]
+        -_normalize_time(value: str) str
+    }
+
+    class Pet {
+        +name: str
+        +species: str
+        +age: int
+        +special_needs: str
+        +tasks: List[Task]
+        +get_care_requirements() List[Task]
+        +add_task(task: Task) None
+        +get_pending_tasks() List[Task]
+        +add_recurring_task(task: Task) None
+        +complete_task(task: Task) Optional[Task]
+    }
+
+    class Owner {
+        +name: str
+        +time_availability: List[TimeWindow]
+        +preferences: str
+        +pets: List[Pet]
+        +add_pet(pet: Pet) None
+        +get_available_windows() List[TimeWindow]
+        +has_time_for_task(duration: int) bool
+        +get_all_tasks() List[Task]
+    }
+
+    class ScheduledTask {
+        +task: Task
+        +start_time: time
+        +end_time: time
+        +overlaps_with(other: ScheduledTask) bool
+        +fits_in_window(window: TimeWindow) bool
+    }
+
+    class DailyPlan {
+        +date: datetime
+        +owner: Owner
+        +pet: Pet
+        +scheduled_items: List[ScheduledTask]
+        +skipped_tasks: List[Task]
+        +total_time_used: int
+        +add_scheduled_task(scheduled_task: ScheduledTask) None
+        +is_feasible() bool
+        +_has_conflict(item: ScheduledTask) bool
+        +get_explanation() str
+    }
+
+    class Scheduler {
+        +owner: Owner
+        +pet: Optional[Pet]
+        +get_all_tasks() List[Task]
+        +organize_tasks() List[Task]
+        +sort_by_time(tasks: List[Task]) List[Task]
+        +filter_tasks(tasks: List[Task], completed: Optional[bool], pet_name: Optional[str]) List[Task]
+        +generate_daily_plan() DailyPlan
+        +rank_tasks_by_priority() List[Task]
+        +find_time_slot_for_task(task: Task) Optional[TimeWindow]
+        +detect_conflicts(tasks: List[Task]) Optional[str]
+    }
+
+    Owner "1" *-- "0..*" Pet : owns
+    Pet "1" *-- "0..*" Task : contains
+    Owner --> TimeWindow : has availability
+    Scheduler --> Owner : uses
+    Scheduler --> Pet : plans for
+    Scheduler --> DailyPlan : creates
+    DailyPlan --> ScheduledTask : stores
+    DailyPlan --> Owner : references owner
+    DailyPlan --> Pet : references pet
+    ScheduledTask --> Task : references

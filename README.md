@@ -100,25 +100,65 @@ Confidence Level: ★★★★★
 
 The scheduler logic is currently well covered for its core behaviors, and the passing test run gives strong confidence in the reliability of the planning and recurrence features.
 
-## 📐 Smarter Scheduling
+## 📐 System Architecture
 
-The scheduler now includes a few lightweight but useful planning features that make the demo feel more realistic.
+The final UML diagram for PawPal+ is saved in [diagrams/uml_final.mmd](diagrams/uml_final.mmd) and rendered below.
 
-| Feature | Method | What it does |
-|---------|--------|--------------|
-| Sorting behavior | `Scheduler.sort_by_time()` | Orders tasks by their planned time of day so the output is easier to read and follow. |
-| Filtering behavior | `Scheduler.filter_tasks()` | Filters tasks by completion status and by pet name, which helps the app focus on pending or pet-specific care items. |
-| Conflict detection | `Scheduler.detect_conflicts()` | Checks for overlapping task times and returns a warning message instead of crashing the program. |
-| Recurring tasks | `Task.mark_complete()` and `Pet.complete_task()` | When a daily or weekly task is completed, a new task for the next occurrence is created automatically. |
+![PawPal+ UML diagram](diagrams/uml_final.png)
+
+## ✨ Features
+
+PawPal+ combines a small scheduling engine with a simple Streamlit interface so a pet owner can quickly organize daily care.
+
+- Sorting by time: `Scheduler.sort_by_time()` orders tasks chronologically so the schedule is easy to follow.
+- Priority-based planning: `Scheduler.organize_tasks()` ranks tasks by importance, duration, and planned time.
+- Conflict warnings: `Scheduler.detect_conflicts()` highlights overlapping appointments before they become a problem.
+- Recurring tasks: `Task.mark_complete()` and `Pet.complete_task()` create the next daily or weekly occurrence automatically.
+- Pet-specific filtering: the UI lets users view appointments for one pet or for all pets at once.
+- Beginner-friendly dashboard: `app.py` presents metrics, a bar chart, and a clean schedule table for fast review.
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+Follow this quick workflow to see the scheduler in action:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Start the app with `streamlit run app.py`.
+2. Enter the owner and pet information, then add a pet to the owner profile.
+3. Add one or more appointments such as walks, feeding, grooming, or vet visits.
+4. Review the scheduler overview to see sorted upcoming tasks, pet-specific filtering, and any conflict warnings.
+5. Run `python3 main.py` to see the same scheduling logic in the terminal, including sorted tasks, pending items, and recurring-task behavior.
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+A typical example workflow looks like this:
+
+- Add a pet such as Mochi
+- Add care tasks with times and durations
+- View the sorted schedule in the UI
+- Confirm whether any conflicts need attention before finalizing the day
+
+Sample CLI output from running `main.py`:
+
+```text
+Today's Schedule
+====================
+- 08:00 - 08:30 : Morning walk (30 min)
+- 08:30 - 08:40 : Feeding (10 min)
+- 08:40 - 08:50 : Brush (10 min)
+- 08:50 - 09:05 : Brush (15 min)
+- 09:05 - 09:25 : Grooming (20 min)
+- 09:25 - 09:40 : Play time (15 min)
+
+Sorted tasks by time:
+- 08:00 : Feeding
+- 09:15 : Grooming
+- 09:15 : Brush
+- 10:30 : Morning walk
+
+Pending tasks for Mochi:
+- Feeding
+- Grooming
+- Brush
+- Morning walk
+
+Warning: conflict detected for Mochi between Brush and another task at the same time.
+
+Next recurring task created: Morning walk due 2026-07-08 23:55:58.799605
+```
