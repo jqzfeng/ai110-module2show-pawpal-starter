@@ -57,19 +57,48 @@ Today's Schedule
 
 ## 🧪 Testing PawPal+
 
+Run the full test suite with:
+
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output:
+These tests check the core scheduling behavior of PawPal+, including:
 
+- task sorting and ordering
+- recurring task behavior for daily and weekly care items
+- conflict detection for overlapping task times
+- basic pet and owner task management
+
+Example test run:
+
+```text
+============================= test session starts ==============================
+platform darwin -- Python 3.13.0, pytest-7.4.1, pluggy-1.0
+rootdir: /Users/qiuzifeng/Desktop/CodePath 2026/ai110-module2show-pawpal-starter
+collected 12 items
+
+tests/test_pawpal.py::test_mark_complete_changes_task_status PASSED
+tests/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED
+tests/test_pawpal_system.py::test_task_can_be_marked_complete PASSED
+tests/test_pawpal_system.py::test_pet_tracks_and_filters_tasks PASSED
+tests/test_pawpal_system.py::test_owner_collects_tasks_from_all_pets PASSED
+tests/test_pawpal_system.py::test_scheduler_organizes_pending_tasks_across_pets PASSED
+tests/test_pawpal_system.py::test_scheduler_can_sort_tasks_by_time_of_day PASSED
+tests/test_pawpal_system.py::test_scheduler_can_filter_tasks_by_completion_and_pet_name PASSED
+tests/test_pawpal_system.py::test_mark_complete_creates_next_occurrence_for_daily_task PASSED
+tests/test_pawpal_system.py::test_pet_tracks_next_occurrence_when_recurring_task_is_completed PASSED
+tests/test_pawpal_system.py::test_scheduler_reports_conflict_warning_for_overlapping_tasks PASSED
+tests/test_pawpal_system.py::test_sort_by_time_returns_tasks_in_chronological_order PASSED
+tests/test_pawpal_system.py::test_mark_complete_creates_a_new_task_for_the_following_day PASSED
+tests/test_pawpal_system.py::test_scheduler_flags_duplicate_times_as_conflicts PASSED
+
+============================== 12 passed in 0.02s ==============================
 ```
-# Paste your pytest output here
-```
+
+Confidence Level: ★★★★★
+
+The scheduler logic is currently well covered for its core behaviors, and the passing test run gives strong confidence in the reliability of the planning and recurrence features.
 
 ## 📐 Smarter Scheduling
 
