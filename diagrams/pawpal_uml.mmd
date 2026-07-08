@@ -1,0 +1,66 @@
+classDiagram
+    class Owner {
+        -name: string
+        -time_availability: List~TimeWindow~
+        -preferences: string
+        +get_available_windows() List~TimeWindow~
+        +has_time_for_task(duration: int) bool
+    }
+
+    class Pet {
+        -name: string
+        -species: string
+        -age: int
+        -special_needs: string
+        +get_care_requirements() List~Task~
+    }
+
+    class Task {
+        -title: string
+        -duration_minutes: int
+        -priority: string
+        -is_essential: bool
+        +get_priority_score() int
+        +can_skip() bool
+    }
+
+    class ScheduledTask {
+        -task: Task
+        -start_time: Time
+        -end_time: Time
+        +overlaps_with(other: ScheduledTask) bool
+        +fits_in_window(window: TimeWindow) bool
+    }
+
+    class DailyPlan {
+        -date: Date
+        -scheduled_items: List~ScheduledTask~
+        -skipped_tasks: List~Task~
+        -total_time_used: int
+        +add_scheduled_task(task: ScheduledTask) void
+        +is_feasible() bool
+        +get_explanation() string
+    }
+
+    class Scheduler {
+        -owner: Owner
+        -pet: Pet
+        -available_tasks: List~Task~
+        +generate_daily_plan() DailyPlan
+        +rank_tasks_by_priority() List~Task~
+        +find_time_slot_for_task(task: Task) TimeWindow
+    }
+
+    class TimeWindow {
+        -start_time: Time
+        -end_time: Time
+        +get_duration() int
+    }
+
+    Scheduler --> Owner
+    Scheduler --> Pet
+    Scheduler --> Task
+    Scheduler --> DailyPlan
+    DailyPlan --> ScheduledTask
+    ScheduledTask --> Task
+    Owner --> TimeWindow
