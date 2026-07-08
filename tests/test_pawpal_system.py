@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from pawpal_system import Task, Pet, Owner, Scheduler
 
 
@@ -54,3 +56,81 @@ def test_scheduler_organizes_pending_tasks_across_pets():
     organized = scheduler.organize_tasks()
 
     assert [task.description for task in organized] == ["Walk", "Feed", "Brush"]
+
+
+def test_scheduler_can_sort_tasks_by_time_of_day():
+    owner = Owner("Jordan")
+    pet = Pet("Mochi", "dog")
+    pet.add_task(Task("Morning walk", 20, "daily", priority="high", time_of_day="10:30"))
+    pet.add_task(Task("Feeding", 10, "daily", priority="medium", time_of_day="08:00"))
+    owner.add_pet(pet)
+
+    scheduler = Scheduler(owner, pet=pet)
+    sorted_tasks = scheduler.sort_by_time(pet.tasks)
+
+    assert [task.description for task in sorted_tasks] == ["Feeding", "Morning walk"]
+
+
+def test_scheduler_can_filter_tasks_by_completion_and_pet_name():
+    owner = Owner("Jordan")
+    pet_one = Pet("Mochi", "dog")
+    pet_two = Pet("Luna", "cat")
+
+    task_one = Task("Walk", 20, "daily", priority="high", time_of_day="09:00")
+    task_two = Task("Brush", 15, "weekly", priority="low", time_of_day="11:00")
+    task_two.mark_complete()
+
+    pet_one.add_task(task_one)
+    pet_two.add_task(task_two)
+
+    owner.add_pet(pet_one)
+    owner.add_pet(pet_two)
+
+    scheduler = Scheduler(owner)
+    pending_tasks = scheduler.filter_tasks(owner.get_all_tasks(), completed=False)
+    pet_tasks = scheduler.filter_tasks(owner.get_all_tasks(), pet_name="Mochi")
+
+    assert [task.description for task in pending_tasks] == ["Walk"]
+    assert [task.description for task in pet_tasks] == ["Walk"]
+
+
+def test_mark_complete_creates_next_occurrence_for_daily_task():
+    task = Task("Feed", 10, "daily", priority="high", time_of_day="08:00")
+
+    next_task = task.mark_complete()
+
+    assert task.completed is True
+    assert next_task is not None
+    assert next_task.completed is False
+    assert next_task.frequency == "daily"
+    assert next_task.description == "Feed"
+    assert next_task.due_date is not None
+    assert next_task.due_date >= datetime.now() + timedelta(hours=23)
+    assert next_task.due_date <= datetime.now() + timedelta(days=1, minutes=5)
+
+
+def test_pet_tracks_next_occurrence_when_recurring_task_is_completed():
+    pet = Pet("Mochi", "dog")
+    task = Task("Feed", 10, "daily", priority="high", time_of_day="08:00")
+    pet.add_task(task)
+
+    next_task = pet.complete_task(task)
+
+    assert task.completed is True
+    assert next_task is not None
+    assert next_task in pet.tasks
+    assert len(pet.get_pending_tasks()) == 1
+
+
+def test_scheduler_reports_conflict_warning_for_overlapping_tasks():
+    owner = Owner("Jordan")
+    pet = Pet("Mochi", "dog")
+    pet.add_task(Task("Feed", 10, "daily", priority="high", time_of_day="08:00"))
+    pet.add_task(Task("Walk", 20, "daily", priority="high", time_of_day="08:00"))
+    owner.add_pet(pet)
+
+    scheduler = Scheduler(owner, pet=pet)
+    warning = scheduler.detect_conflicts(pet.tasks)
+
+    assert warning is not None
+    assert "conflict" in warning.lower()

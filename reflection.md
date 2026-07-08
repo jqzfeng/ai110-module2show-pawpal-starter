@@ -50,7 +50,12 @@ Finally, I made the pet model more useful by planning for essential care require
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+
+One tradeoff in the current scheduler is that it checks for conflicts using simple time-of-day matches rather than fully modeling overlapping durations across the whole day. In practice, this means the system can detect obvious overlaps like two tasks scheduled at the same start time, but it is still a lightweight approach rather than a full calendar-style planner.
+
 - Why is that tradeoff reasonable for this scenario?
+
+That tradeoff is reasonable for this project because the goal is to provide a clear, readable scheduling demo rather than a production-grade calendar engine. The simpler approach makes the code easier to understand and maintain while still giving useful warnings when tasks appear to clash.
 
 ---
 
